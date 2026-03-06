@@ -130,8 +130,6 @@ export const updateUser = asyncHandler(async (req, res) => {
     Object.assign(user, req.body);
     await user.save();
 
-    
-
     return res
         .status(200)
         .json(new ApiResponse(200, user, "User updated successfully"));
