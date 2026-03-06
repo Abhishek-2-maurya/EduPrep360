@@ -57,8 +57,8 @@ export const loginUser = asyncHandler(async (req, res) => {
 
     const options = {
         httpOnly: true,
-        secure: false,
-        sameSite:"lax",
+        secure: true,
+        sameSite:"none",
         maxAge: 2*24*60*60*1000,
     };
 
@@ -76,7 +76,11 @@ export const loginUser = asyncHandler(async (req, res) => {
 export const logoutUser = asyncHandler(async (req, res) => {
     return res
         .status(200)
-        .clearCookie("accessToken")
+        .clearCookie("accessToken", {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none"
+        })
         .json(new ApiResponse(200, null, "Logged out successfully"));
 });
 
@@ -118,12 +122,15 @@ export const updateUser = asyncHandler(async (req, res) => {
     const { id } = req.params;
 
     const user = await User.findById(id);
-    Object.assign(user, req.body);
-    await user.save();
 
     if (!user) {
         throw new ApiError(404, "User not found");
     }
+
+    Object.assign(user, req.body);
+    await user.save();
+
+    
 
     return res
         .status(200)
