@@ -53,7 +53,7 @@ export const Layout = () => {
         return [
           { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
           { name: 'All Users', path: '/admin/users', icon: Users },
-          { name: 'Settings', path: '/admin/settings', icon: Settings },
+          // { name: 'Settings', path: '/admin/settings', icon: Settings },
           { name: 'Notes', path: '/admin/notes', icon: FileText },
         ];
       default:

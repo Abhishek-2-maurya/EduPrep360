@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { api } from '../api/axios';
+import { api } from '../../api/axios';
 import { 
   BookOpen, Clock, Calendar, FileQuestion, 
   Search, User, ChevronRight, Zap, 
@@ -75,7 +75,7 @@ export const HodTests = () => {
 
       {/* 2. YEAR FILTERS */}
       <div className="flex flex-wrap gap-2 mb-8 bg-slate-100/50 p-1.5 rounded-2xl w-fit">
-        {['All', '1', '2', '3', '4'].map((year) => (
+        {['All', '1st', '2nd', '3rd', '4th'].map((year) => (
           <button
             key={year}
             onClick={() => setActiveYear(year)}
@@ -174,7 +174,7 @@ const TestCard = ({ test, index }) => {
       </div>
 
       <Link 
-        to={`/teacher/tests/${test._id}/results`}
+        to={`/hod/test/${test._id}/analytics`}
         className="mx-8 mb-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-indigo-600 transition-all shadow-xl hover:shadow-indigo-200"
       >
         View Branch Analytics <BarChart3 size={14} />

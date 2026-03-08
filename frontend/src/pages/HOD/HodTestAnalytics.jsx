@@ -16,7 +16,8 @@ export const HodTestAnalytics = () => {
   useEffect(() => {
     const fetchHodAnalytics = async () => {
       try {
-        const res = await api.get(`/results/hod/test-analytics/${testId}`);
+        const res = await api.get(`results/hod/test-analytics/${testId}`);
+        console.log(res.data.data);
         setData(res.data.data);
       } catch (err) {
         console.error("HOD Analytics fetch failed", err);

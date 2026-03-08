@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import { api } from '../api/axios';
 
-// --- COLOR MAPPING (Prevents Tailwind from stripping dynamic classes) ---
 const colorMap = {
   indigo: {
     bg: "bg-indigo-50",
@@ -87,7 +86,7 @@ export const StudentDashboard = () => {
               <Bell size={20} />
               <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
             </button>
-            <div className="h-6 w-[1px] bg-slate-200 mx-1"></div>
+            <div className="h-6 w-px bg-slate-200 mx-1"></div>
             <div className="flex items-center gap-3 pl-2">
                <div className="text-right hidden sm:block">
                   <p className="text-xs font-black text-slate-900 leading-none">{user?.name}</p>

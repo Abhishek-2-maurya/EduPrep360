@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { api } from "../api/axios";
+import { api } from "../../api/axios"
 import {
   BookOpen, Clock, Calendar, FileQuestion, PlusCircle, 
   Trash2, BarChart3, Users, ChevronRight, Search, 

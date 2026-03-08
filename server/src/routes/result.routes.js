@@ -53,7 +53,7 @@ router.get(
 )
 
 router.get(
-  "/results/hod/test-analytics/:testId",
+  "/hod/test-analytics/:testId",
   verifyToken,
   authorizeRoles("HOD","admin"),
   getHodTestAnalytics

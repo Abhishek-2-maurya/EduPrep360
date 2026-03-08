@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../api/axios';
+import { api } from '../../api/axios';
 import toast from 'react-hot-toast';
 import { PlusCircle, Trash2, Save } from 'lucide-react';
 
