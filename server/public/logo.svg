@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <!-- Gradient Background -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5"></stop>
+      <stop offset="100%" stop-color="#06b6d4"></stop>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded Square Background -->
+  <rect x="5" y="5" width="190" height="190" rx="35" fill="url(#bgGradient)"></rect>
+
+  <!-- Graduation Cap Top -->
+  <polygon points="40,90 100,60 160,90 100,120" fill="none" stroke="white" stroke-width="10" stroke-linejoin="round"></polygon>
+
+  <!-- Cap Base -->
+  <path d="M65 100 L65 135 Q65 150 80 150 L120 150 Q135 150 135 135 L135 100" fill="none" stroke="white" stroke-width="10" stroke-linecap="round"></path>
+
+  <!-- Tassel -->
+  <line x1="100" y1="60" x2="100" y2="40" stroke="white" stroke-width="6" stroke-linecap="round"></line>
+
+  <circle cx="100" cy="40" r="6" fill="white"></circle>
+</svg>

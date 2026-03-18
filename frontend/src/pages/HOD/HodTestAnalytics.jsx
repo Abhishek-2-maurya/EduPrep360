@@ -67,7 +67,7 @@ export const HodTestAnalytics = () => {
           </button>
         </header>
 
-        {/* Audit KPIs */}
+        
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           <HodStatCard label="Total Submissions" value={data?.totalAttempts} icon={<Users />} color="blue" />
           <HodStatCard label="Class Average" value={`${data?.averageScore}%`} icon={<Target />} color="indigo" />
@@ -130,7 +130,7 @@ export const HodTestAnalytics = () => {
 };
 
 const HodStatCard = ({ label, value, icon, color }) => (
-  <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col justify-between group hover:shadow-xl transition-all">
+  <div className="bg-white p-8 rounded-4xl border border-slate-100 shadow-sm flex flex-col justify-between group hover:shadow-xl transition-all">
     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 bg-${color}-50 text-${color}-600`}>
       {icon}
     </div>

@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Test } from "../models/test.model.js";
 import { User } from "../models/user.model.js";
+import { sendResultEmail } from "../utils/sendResultEmail.js";
 
 export const startTest = asyncHandler(async (req, res) => {
   const { testId } = req.body;
@@ -137,7 +138,15 @@ export const submitTest = asyncHandler(async (req, res) => {
   result.submittedAt = new Date();
 
   await result.save();
-
+  await sendResultEmail({
+    email:student.email,
+    name:student.name,
+    testTitle:test.title,
+    score,
+    totalMarks,
+    percentage,
+    status,
+  }).catch(err => console.log("Email failed: ", err));
   return res.status(200).json(
     new ApiResponse(200, result, "Test submitted successfully")
   );

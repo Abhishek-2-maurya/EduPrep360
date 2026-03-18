@@ -29,7 +29,7 @@ export const generateAndUploadPdf = (resultData) => {
       }
     });
 
-    // ---- PDF CONTENT ----
+    
     doc.fontSize(20).text("Exam Result", { align: "center" });
     doc.moveDown();
 
