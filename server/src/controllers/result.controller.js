@@ -138,15 +138,15 @@ export const submitTest = asyncHandler(async (req, res) => {
   result.submittedAt = new Date();
 
   await result.save();
-  await sendResultEmail({
-    email:student.email,
-    name:student.name,
-    testTitle:test.title,
-    score,
-    totalMarks,
-    percentage,
-    status,
-  }).catch(err => console.log("Email failed: ", err));
+  // await sendResultEmail({
+  //   email:student.email,
+  //   name:student.name,
+  //   testTitle:test.title,
+  //   score,
+  //   totalMarks,
+  //   percentage,
+  //   status,
+  // }).catch(err => console.log("Email failed: ", err));
   return res.status(200).json(
     new ApiResponse(200, result, "Test submitted successfully")
   );
