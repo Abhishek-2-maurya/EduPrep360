@@ -18,11 +18,15 @@ export const createTest = asyncHandler(async (req, res) => {
   if (!title || !subject || !duration || !year || !passingMarks || !availabilityHours || !questions?.length) {
     throw new ApiError(400, "All fields including questions are required");
   }
+  console.log(availabilityHours)
+  if(availabilityHours <= 0){
+    throw new ApiError(400, "Availability hours must be greater than 0");
+  }
 
-  const startTime = new Date();
-  const endTime = new Date(
-    startTime.getTime() + availabilityHours * 60 * 60 * 1000
-  );
+  // const startTime = new Date();
+  // const endTime = new Date(
+  //   startTime.getTime() + availabilityHours * 60 * 60 * 1000
+  // );
 
   const test = await Test.create({
     title,
@@ -30,10 +34,10 @@ export const createTest = asyncHandler(async (req, res) => {
     duration,
     year,
     passingMarks,
+    availabilityHours,
     branch: req.user.branch,
     teacherId: req.user._id,
-    startTime,
-    endTime,
+    isActive: false,
   });
 
   const createdQuestions = await Question.insertMany(questions);
@@ -47,6 +51,38 @@ export const createTest = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, test, "Test created successfully"));
 });
 
+
+export const activateTest = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const test = await Test.findById(id);
+  if (!test) throw new ApiError(404, "Test not found");
+
+  if (
+    test.teacherId.toString() !== req.user._id.toString() &&
+    req.user.role !== "admin" &&
+    req.user.role !== "HOD"
+  ) {
+    throw new ApiError(403, "Unauthorized");
+  }
+
+  if (!test.isActive) {
+    const startTime = new Date();
+    const endTime = new Date(
+      startTime.getTime() + test.availabilityHours * 60 * 60 * 1000
+    );
+
+    test.startTime = startTime;
+    test.endTime = endTime;
+    test.isActive = true;
+
+    await test.save();
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, test, "Test activated"));
+});
 
 // export const getBranchTests = asyncHandler(async (req, res) => {
 
@@ -97,9 +133,10 @@ export const getAvailableTests = asyncHandler(async (req, res) => {
   const tests = await Test.find({
     branch: student.branch,
     year: student.year,
+    isActive: true,
     _id: { $nin: attemptedTestIds },
-    startTime: { $lte: now },
-    endTime: { $gte: now },
+    startTime: { $ne: null, $lte: now },
+    endTime: { $ne: null, $gte: now },
   }).populate("teacherId", "name")
     .populate("questions");
 

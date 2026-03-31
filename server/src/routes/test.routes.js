@@ -3,7 +3,8 @@ import {
   createTest,
   getTeacherTests,
   getAvailableTests,
-  deleteTest
+  deleteTest,
+  activateTest,
 } from "../controllers/test.controller.js";
 
 import { verifyToken } from "../middleware/auth.Middleware.js";
@@ -30,6 +31,14 @@ router.get(
   verifyToken,
   authorizeRoles("student"),
   getAvailableTests
+);
+
+
+router.put(
+  "/activate/:id",
+  verifyToken,
+  authorizeRoles("teacher", "HOD", "admin"),
+  activateTest
 );
 
 router.delete(
