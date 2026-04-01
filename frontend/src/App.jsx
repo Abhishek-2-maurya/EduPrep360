@@ -25,6 +25,7 @@ import { CreateTest } from './pages/teacher/CreateTest';
 import { ManageTests } from './pages/teacher/ManageTest';
 import { TeacherTestAnalytics } from './pages/teacher/TeacherTestAnalytics';
 import { TeacherTestResults } from './pages/teacher/TeacherTestResult';
+import { TestQuestions } from './pages/teacher/TestQuestions';
 
 /* HOD pages */
 import { HodDashboard } from './components/HodDashboard';
@@ -104,6 +105,7 @@ function App() {
               <Route path="/teacher/tests/:testId/analytics" element={<TeacherTestAnalytics />}/>
               <Route path="/teacher/tests/:testId/results" element={<TeacherTestResults />} />
               <Route path="/teacher/notes" element={<TeacherNotes />} />
+              <Route path="/teacher/tests/:id/questions" element={<TestQuestions />} />
 
             </Route>
 

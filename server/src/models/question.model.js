@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const questionSchema = new mongoose.Schema({
-    question: {
+  question: {
     type: String,
     required: true,
   },
@@ -17,4 +17,4 @@ const questionSchema = new mongoose.Schema({
 
 const Question = mongoose.model("Question", questionSchema);
 
-export {Question}
+export { Question }

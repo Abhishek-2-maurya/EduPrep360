@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "../../api/axios";
 import {
-  BookOpen, Clock, Calendar, FileQuestion, PlusCircle,
+  BookOpen, Clock, FileQuestion, PlusCircle,
   Trash2, BarChart3, Users, ChevronRight, Search,
-  Filter, Zap, Target, MoreVertical, AlertCircle
+  Filter, Zap, AlertCircle
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -15,6 +15,8 @@ export const ManageTests = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [prompt, setPrompt] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+  const navigate = useNavigate();
+
   const fetchTests = async () => {
     try {
       const response = await api.get("/tests/teacher");
@@ -30,7 +32,8 @@ export const ManageTests = () => {
     fetchTests();
   }, []);
 
-  const handleDelete = async (id, title) => {
+  const handleDelete = async (e, id, title) => {
+    e.stopPropagation(); // Prevent navigating to questions when clicking delete
     if (!window.confirm(`Are you sure you want to permanently delete "${title}"?`)) return;
     try {
       await api.delete(`/tests/${id}`);
@@ -41,20 +44,17 @@ export const ManageTests = () => {
     }
   };
 
-  const handleToggleActivate = async (id, currentStatus) => {
+  const handleToggleActivate = async (e, id, currentStatus) => {
+    e.stopPropagation(); // Prevent navigating to questions
     try {
-      // Toggles the current status to its opposite
       await api.put(`/tests/activate/${id}`, { isActive: !currentStatus });
-
-      // Optimistic UI update for immediate feedback
       setTests((prev) =>
         prev.map((t) => (t._id === id ? { ...t, isActive: !currentStatus } : t))
       );
-
       toast.success(!currentStatus ? "Test is now Live" : "Test Deactivated");
     } catch (err) {
       toast.error("Status update failed");
-      fetchTests(); // Revert to server state on error
+      fetchTests();
     }
   };
 
@@ -63,12 +63,10 @@ export const ManageTests = () => {
       toast.error("Please enter a prompt");
       return;
     }
-
     try {
       setAiLoading(true);
       await api.post("/tests/ai-create", { prompt });
       toast.success("AI Test Created Successfully!");
-
       fetchTests();
       setPrompt("");
     } catch (err) {
@@ -77,7 +75,6 @@ export const ManageTests = () => {
       setAiLoading(false);
     }
   };
-
 
   const getStatus = (test) => {
     const now = new Date();
@@ -113,7 +110,7 @@ export const ManageTests = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6 pb-20 pt-8 font-sans">
-      {/* 1. ELITE HEADER & SUMMARY */}
+      {/* HEADER */}
       <header className="mb-12 flex flex-col xl:flex-row xl:items-end justify-between gap-8">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
@@ -152,63 +149,39 @@ export const ManageTests = () => {
         </div>
       </header>
 
-      {/* 2. GRID CONTENT */}
-      {/* AI TEST GENERATOR */}
-      <div className="bg-white p-6 rounded-2xl shadow-md mb-8 border border-gray-200">
-        <h2 className="text-2xl font-black text-slate-900 leading-tight line-clamp-2 min-h-14">AI Test Generator</h2>
-        <p className="text-gray-500 text-sm mb-4">
-          Example: Create a Python test with 20 MCQs for 2nd year, duration 30 minutes
-        </p>
-
+      {/* AI GENERATOR */}
+      <div className="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/40 mb-12 border border-slate-100">
+        <div className="flex items-center gap-2 mb-4">
+            <Zap className="text-indigo-600" size={20} />
+            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">AI Test Generator</h2>
+        </div>
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          rows="3"
-          className="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-indigo-500 outline-none"
-          placeholder="Type your instruction for AI..."
+          rows="2"
+          className="w-full border-none bg-slate-50 rounded-2xl p-4 mb-4 focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-slate-600 placeholder:text-slate-300"
+          placeholder="e.g., Create a 10 question React hooks quiz for 3rd year students..."
         />
-
         <button
           onClick={handleAIGenerate}
           disabled={aiLoading}
-          className={`w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${aiLoading
-              ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-              : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200 active:scale-95'
-            }`}
+          className={`flex items-center gap-2 px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+            aiLoading ? 'bg-slate-100 text-slate-400' : 'bg-indigo-600 text-white hover:bg-indigo-700'
+          }`}
         >
-          {aiLoading ? (
-            <>
-              <div className="w-3 h-3 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
-              Generating...
-            </>
-          ) : (
-            <>
-              <Zap size={14} />
-              Generate Test with AI
-            </>
-          )}
+          {aiLoading ? "Processing..." : "Generate with AI"}
         </button>
       </div>
+
+      {/* GRID */}
       <AnimatePresence mode="popLayout">
         {filteredTests.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-white p-20 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/30 text-center"
-          >
-            <div className="w-24 h-24 bg-slate-50 rounded-4xl flex items-center justify-center mx-auto mb-6 text-slate-200">
-              <Filter size={48} />
-            </div>
-            <h3 className="text-2xl font-black text-slate-900 mb-2">Registry Empty</h3>
-            <p className="text-slate-400 font-medium mb-10 uppercase text-[10px] tracking-[0.2em]">No tests found matching the current criteria</p>
-            <Link to="/teacher/tests/create" className="bg-indigo-50 text-indigo-600 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-100 transition-all inline-flex items-center gap-2">
-              Create First Test <ChevronRight size={16} />
-            </Link>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 bg-white rounded-[3rem] border border-slate-100">
+            <Filter size={48} className="mx-auto mb-4 text-slate-200" />
+            <h3 className="text-xl font-black text-slate-900">No Tests Found</h3>
           </motion.div>
         ) : (
-          <motion.div
-            layout
-            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"
-          >
+          <motion.div layout className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
             {filteredTests.map((test, i) => (
               <TestCard
                 key={test._id}
@@ -216,6 +189,7 @@ export const ManageTests = () => {
                 onDelete={handleDelete}
                 onToggleActive={handleToggleActivate}
                 index={i}
+                onClick={() => navigate(`/teacher/tests/${test._id}/questions`)}
               />
             ))}
           </motion.div>
@@ -225,7 +199,7 @@ export const ManageTests = () => {
   );
 };
 
-// --- SUB-COMPONENTS ---
+// --- COMPONENTS ---
 
 const SummaryPill = ({ label, value, color }) => {
   const colors = {
@@ -241,7 +215,7 @@ const SummaryPill = ({ label, value, color }) => {
   );
 };
 
-const TestCard = ({ test, onDelete, onToggleActive, index }) => {
+const TestCard = ({ test, onDelete, onToggleActive, index, onClick }) => {
   const isExpired = new Date() > new Date(test.endTime);
 
   return (
@@ -250,24 +224,22 @@ const TestCard = ({ test, onDelete, onToggleActive, index }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
-      className={`bg-white rounded-[2.5rem] border-2 transition-all duration-500 flex flex-col group overflow-hidden ${test.isActive ? 'border-transparent shadow-sm' : 'border-slate-100 opacity-80 shadow-none grayscale-[0.4]'
-        } hover:shadow-2xl hover:shadow-indigo-500/10`}
+      onClick={onClick}
+      className={`bg-white rounded-[2.5rem] border-2 cursor-pointer transition-all duration-300 flex flex-col group overflow-hidden ${
+        test.isActive ? 'border-transparent shadow-xl shadow-slate-200/50' : 'border-slate-100 opacity-90 grayscale-[0.2]'
+      } hover:scale-[1.01] hover:border-indigo-100`}
     >
       <div className="p-8 flex-1">
         <div className="flex justify-between items-start mb-6">
-          {/* Dynamic Status Badge */}
-          <div className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border flex items-center gap-2 ${!test.isActive
-            ? 'bg-slate-100 text-slate-500 border-slate-200'
-            : isExpired
-              ? 'bg-rose-50 text-rose-600 border-rose-100'
-              : 'bg-emerald-50 text-emerald-600 border-emerald-100'
-            }`}>
+          <div className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border flex items-center gap-2 ${
+            !test.isActive ? 'bg-slate-100 text-slate-500' : isExpired ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'
+          }`}>
             <div className={`w-1.5 h-1.5 rounded-full ${test.isActive ? 'bg-current animate-pulse' : 'bg-slate-400'}`} />
-            {test.isActive ? (isExpired ? 'Archived' : 'Live Assessment') : 'Inactive / Draft'}
+            {test.isActive ? (isExpired ? 'Archived' : 'Live') : 'Draft'}
           </div>
 
           <button
-            onClick={() => onDelete(test._id, test.title)}
+            onClick={(e) => onDelete(e, test._id, test.title)}
             className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
           >
             <Trash2 size={18} />
@@ -276,47 +248,41 @@ const TestCard = ({ test, onDelete, onToggleActive, index }) => {
 
         <div className="mb-8">
           <p className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] mb-2">{test.subject}</p>
-          <h3 className="text-2xl font-black text-slate-900 leading-tight line-clamp-2 min-h-14">
+          <h3 className="text-2xl font-black text-slate-900 leading-tight line-clamp-2 group-hover:text-indigo-600 transition-colors">
             {test.title}
           </h3>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-2 gap-4 mb-2">
           <MetaItem icon={Clock} label="Duration" value={`${test.duration}m`} />
           <MetaItem icon={FileQuestion} label="Payload" value={`${test.questions?.length || 0} Qs`} />
-          <MetaPill label="Year" value={test.year} />
-          <MetaPill label="Target" value={`${test.passingMarks}%`} />
         </div>
       </div>
 
       <div className="p-6 pt-0 mt-auto flex flex-col gap-3">
-        {/* Toggle Active Action */}
         <button
-          onClick={() => onToggleActive(test._id, test.isActive)}
-          className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${test.isActive
-            ? 'bg-amber-50 text-amber-600 hover:bg-amber-100'
-            : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200'
-            }`}
+          onClick={(e) => onToggleActive(e, test._id, test.isActive)}
+          className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+            test.isActive ? 'bg-amber-50 text-amber-600 hover:bg-amber-100' : 'bg-indigo-600 text-white hover:bg-indigo-700'
+          }`}
         >
-          {test.isActive ? (
-            <><AlertCircle size={14} /> Deactivate Test</>
-          ) : (
-            <><Zap size={14} /> Activate & Go Live</>
-          )}
+          {test.isActive ? <><AlertCircle size={14} /> Deactivate</> : <><Zap size={14} /> Go Live</>}
         </button>
 
         <div className="flex gap-2">
           <Link
             to={`/teacher/tests/${test._id}/results`}
-            className="flex-1 flex items-center justify-center gap-2 py-4 bg-slate-50 text-slate-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-50 hover:text-indigo-600 transition-all"
+            onClick={(e) => e.stopPropagation()}
+            className="flex-1 flex items-center justify-center gap-2 py-4 bg-slate-50 text-slate-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-50 hover:text-indigo-600 transition-all"
           >
             <Users size={14} /> Results
           </Link>
           <Link
             to={`/teacher/tests/${test._id}/analytics`}
-            className="flex-1 flex items-center justify-center gap-2 py-4 bg-slate-50 text-slate-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 hover:text-blue-600 transition-all"
+            onClick={(e) => e.stopPropagation()}
+            className="flex-1 flex items-center justify-center gap-2 py-4 bg-slate-50 text-slate-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 hover:text-blue-600 transition-all"
           >
-            <BarChart3 size={14} /> Intelligence
+            <BarChart3 size={14} /> Stats
           </Link>
         </div>
       </div>
@@ -333,12 +299,5 @@ const MetaItem = ({ icon: Icon, label, value }) => (
       <p className="text-[9px] font-black text-slate-400 uppercase leading-none">{label}</p>
       <p className="text-xs font-black text-slate-800 mt-1 tracking-tight">{value}</p>
     </div>
-  </div>
-);
-
-const MetaPill = ({ label, value }) => (
-  <div className="flex items-center justify-between px-4 py-3 bg-slate-50 rounded-2xl">
-    <span className="text-[9px] font-black text-slate-400 uppercase">{label}</span>
-    <span className="text-xs font-black text-slate-800">{value}</span>
   </div>
 );

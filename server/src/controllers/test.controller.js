@@ -79,7 +79,7 @@ export const getTestQuestions = asyncHandler(async (req, res) => {
 
 export const updateQuestion = asyncHandler(async (req, res) => {
   const { questionId } = req.params;
-  const { questionText, options, correctAnswer, marks } = req.body;
+  const { questionText, options, correctAnswer} = req.body;
 
   const question = await Question.findById(questionId);
   if (!question) {
@@ -89,7 +89,7 @@ export const updateQuestion = asyncHandler(async (req, res) => {
   question.questionText = questionText || question.questionText;
   question.options = options || question.options;
   question.correctAnswer = correctAnswer || question.correctAnswer;
-  question.marks = marks || question.marks;
+  // question.marks = marks || question.marks;
 
   await question.save();
 
@@ -197,9 +197,9 @@ export const deleteTest = asyncHandler(async (req, res) => {
   const test = await Test.findById(id);
   console.log(test);
   if (!test) throw new ApiError(404, "Test is Not Found");
-  console.log("Test teacher:", test.teacherId.toString());
-  console.log("Logged user:", req.user._id.toString());
-  console.log("Role:", req.user.role);
+  // console.log("Test teacher:", test.teacherId.toString());
+  // console.log("Logged user:", req.user._id.toString());
+  // console.log("Role:", req.user.role);
   if (
     test.teacherId.toString() !== req.user._id.toString() &&
     req.user.role !== "admin" && req.user.role !== "HOD"
