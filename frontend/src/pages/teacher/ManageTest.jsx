@@ -13,7 +13,8 @@ export const ManageTests = () => {
   const [tests, setTests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-
+  const [prompt, setPrompt] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
   const fetchTests = async () => {
     try {
       const response = await api.get("/tests/teacher");
@@ -44,18 +45,39 @@ export const ManageTests = () => {
     try {
       // Toggles the current status to its opposite
       await api.put(`/tests/activate/${id}`, { isActive: !currentStatus });
-      
+
       // Optimistic UI update for immediate feedback
       setTests((prev) =>
         prev.map((t) => (t._id === id ? { ...t, isActive: !currentStatus } : t))
       );
-      
+
       toast.success(!currentStatus ? "Test is now Live" : "Test Deactivated");
     } catch (err) {
       toast.error("Status update failed");
       fetchTests(); // Revert to server state on error
     }
   };
+
+  const handleAIGenerate = async () => {
+    if (!prompt) {
+      toast.error("Please enter a prompt");
+      return;
+    }
+
+    try {
+      setAiLoading(true);
+      await api.post("/tests/ai-create", { prompt });
+      toast.success("AI Test Created Successfully!");
+
+      fetchTests();
+      setPrompt("");
+    } catch (err) {
+      toast.error("AI failed to create test");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
 
   const getStatus = (test) => {
     const now = new Date();
@@ -131,6 +153,42 @@ export const ManageTests = () => {
       </header>
 
       {/* 2. GRID CONTENT */}
+      {/* AI TEST GENERATOR */}
+      <div className="bg-white p-6 rounded-2xl shadow-md mb-8 border border-gray-200">
+        <h2 className="text-2xl font-black text-slate-900 leading-tight line-clamp-2 min-h-14">AI Test Generator</h2>
+        <p className="text-gray-500 text-sm mb-4">
+          Example: Create a Python test with 20 MCQs for 2nd year, duration 30 minutes
+        </p>
+
+        <textarea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          rows="3"
+          className="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-indigo-500 outline-none"
+          placeholder="Type your instruction for AI..."
+        />
+
+        <button
+          onClick={handleAIGenerate}
+          disabled={aiLoading}
+          className={`w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${aiLoading
+              ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+              : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200 active:scale-95'
+            }`}
+        >
+          {aiLoading ? (
+            <>
+              <div className="w-3 h-3 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+              Generating...
+            </>
+          ) : (
+            <>
+              <Zap size={14} />
+              Generate Test with AI
+            </>
+          )}
+        </button>
+      </div>
       <AnimatePresence mode="popLayout">
         {filteredTests.length === 0 ? (
           <motion.div
@@ -152,12 +210,12 @@ export const ManageTests = () => {
             className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"
           >
             {filteredTests.map((test, i) => (
-              <TestCard 
-                key={test._id} 
-                test={test} 
-                onDelete={handleDelete} 
+              <TestCard
+                key={test._id}
+                test={test}
+                onDelete={handleDelete}
                 onToggleActive={handleToggleActivate}
-                index={i} 
+                index={i}
               />
             ))}
           </motion.div>
@@ -192,24 +250,22 @@ const TestCard = ({ test, onDelete, onToggleActive, index }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
-      className={`bg-white rounded-[2.5rem] border-2 transition-all duration-500 flex flex-col group overflow-hidden ${
-        test.isActive ? 'border-transparent shadow-sm' : 'border-slate-100 opacity-80 shadow-none grayscale-[0.4]'
-      } hover:shadow-2xl hover:shadow-indigo-500/10`}
+      className={`bg-white rounded-[2.5rem] border-2 transition-all duration-500 flex flex-col group overflow-hidden ${test.isActive ? 'border-transparent shadow-sm' : 'border-slate-100 opacity-80 shadow-none grayscale-[0.4]'
+        } hover:shadow-2xl hover:shadow-indigo-500/10`}
     >
       <div className="p-8 flex-1">
         <div className="flex justify-between items-start mb-6">
           {/* Dynamic Status Badge */}
-          <div className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border flex items-center gap-2 ${
-            !test.isActive 
-              ? 'bg-slate-100 text-slate-500 border-slate-200' 
-              : isExpired 
-                ? 'bg-rose-50 text-rose-600 border-rose-100' 
-                : 'bg-emerald-50 text-emerald-600 border-emerald-100'
-          }`}>
+          <div className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border flex items-center gap-2 ${!test.isActive
+            ? 'bg-slate-100 text-slate-500 border-slate-200'
+            : isExpired
+              ? 'bg-rose-50 text-rose-600 border-rose-100'
+              : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+            }`}>
             <div className={`w-1.5 h-1.5 rounded-full ${test.isActive ? 'bg-current animate-pulse' : 'bg-slate-400'}`} />
             {test.isActive ? (isExpired ? 'Archived' : 'Live Assessment') : 'Inactive / Draft'}
           </div>
-          
+
           <button
             onClick={() => onDelete(test._id, test.title)}
             className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
@@ -237,11 +293,10 @@ const TestCard = ({ test, onDelete, onToggleActive, index }) => {
         {/* Toggle Active Action */}
         <button
           onClick={() => onToggleActive(test._id, test.isActive)}
-          className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
-            test.isActive 
-              ? 'bg-amber-50 text-amber-600 hover:bg-amber-100' 
-              : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200'
-          }`}
+          className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${test.isActive
+            ? 'bg-amber-50 text-amber-600 hover:bg-amber-100'
+            : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200'
+            }`}
         >
           {test.isActive ? (
             <><AlertCircle size={14} /> Deactivate Test</>

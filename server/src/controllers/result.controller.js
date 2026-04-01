@@ -128,7 +128,7 @@ export const submitTest = asyncHandler(async (req, res) => {
   );
 
   const status =
-    score >= test.passingMarks ? "pass" : "fail";
+    percentage >= test.passingMarks ? "pass" : "fail";
 
   
   result.score = score;

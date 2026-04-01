@@ -52,6 +52,52 @@ export const createTest = asyncHandler(async (req, res) => {
 });
 
 
+export const getTestQuestions = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const test = await Test.findById(id)
+    .populate("questions")
+    .populate("teacherId", "name");
+
+  if (!test) {
+    throw new ApiError(404, "Test not found");
+  }
+
+  // Authorization
+  if (
+    test.teacherId._id.toString() !== req.user._id.toString() &&
+    req.user.role !== "admin" &&
+    req.user.role !== "HOD"
+  ) {
+    throw new ApiError(403, "Unauthorized");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, test.questions, "Questions fetched"));
+});
+
+export const updateQuestion = asyncHandler(async (req, res) => {
+  const { questionId } = req.params;
+  const { questionText, options, correctAnswer, marks } = req.body;
+
+  const question = await Question.findById(questionId);
+  if (!question) {
+    throw new ApiError(404, "Question not found");
+  }
+
+  question.questionText = questionText || question.questionText;
+  question.options = options || question.options;
+  question.correctAnswer = correctAnswer || question.correctAnswer;
+  question.marks = marks || question.marks;
+
+  await question.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, question, "Question updated"));
+});
+
 export const activateTest = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
