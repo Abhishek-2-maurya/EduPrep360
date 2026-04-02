@@ -5,7 +5,7 @@ import { api } from "../../api/axios";
 import {
   BookOpen, Clock, FileQuestion, PlusCircle,
   Trash2, BarChart3, Users, ChevronRight, Search,
-  Filter, Zap, AlertCircle
+  Filter, Zap,Award, AlertCircle
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -21,6 +21,7 @@ export const ManageTests = () => {
     try {
       const response = await api.get("/tests/teacher");
       setTests(response.data.data);
+      console.log(response.data.data);
     } catch (err) {
       toast.error("Cloud synchronization failed");
     } finally {
@@ -256,6 +257,8 @@ const TestCard = ({ test, onDelete, onToggleActive, index, onClick }) => {
         <div className="grid grid-cols-2 gap-4 mb-2">
           <MetaItem icon={Clock} label="Duration" value={`${test.duration}m`} />
           <MetaItem icon={FileQuestion} label="Payload" value={`${test.questions?.length || 0} Qs`} />
+          <MetaItem icon={Users} label="Target Year" value={`${test.year || 'N/A'}`} />
+          <MetaItem icon={Award} label="passingPer" value={`${test.passingMarks|| 'N/A'}%`} />
         </div>
       </div>
 
