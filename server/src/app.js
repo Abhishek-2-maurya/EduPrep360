@@ -35,6 +35,7 @@ app.use("/api/results", resultRoute)
 import noteRoute from "./routes/note.routes.js"
 app.use("/api/note",noteRoute);
 
+
 app.use((err, req, res, next) => {
   console.error("Global Error:", err);
 

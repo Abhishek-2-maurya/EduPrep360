@@ -7,10 +7,39 @@ import jwt from "jsonwebtoken";
 //register user
 
 export const registerUser = asyncHandler(async (req, res) => {
-    const { name, email, password, role, branch, year } = req.body;
-
+    const { name, email, password, role, branch, year, secretKey } = req.body;
+    console.log(secretKey);
+    console.log(process.env.STAFF_SECRET_KEY)
     if (!name || !email || !password || !role) {
         throw new ApiError(400, "All required fields must be provided");
+    }
+
+    
+    if (role === "admin") {
+        throw new ApiError(403, "Admin cannot be registered");
+    }
+
+   
+    if (role === "teacher" || role === "HOD") {
+
+       
+        if (!secretKey || secretKey !== process.env.STAFF_SECRET_KEY) {
+            throw new ApiError(403, "Invalid or missing staff secret key");
+        }
+
+       
+        if (!email.endsWith("@axiscolleges.in")) {
+            throw new ApiError(403, "Only @axiscolleges.in email allowed for staff");
+        }
+    }
+
+    
+    if (role === "student" && (!branch || !year)) {
+        throw new ApiError(400, "Branch and Year are required for students");
+    }
+
+    if ((role === "teacher" || role === "HOD") && !branch) {
+        throw new ApiError(400, "Branch is required for staff");
     }
 
     const existingUser = await User.findOne({ email });

@@ -1,28 +1,80 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { GraduationCap, User, Mail, Lock, School, Calendar, ChevronRight, BookOpen } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  GraduationCap,
+  User,
+  Mail,
+  Lock,
+  School,
+  Calendar,
+  ChevronRight,
+  BookOpen,
+  KeyRound,
+  Eye,
+  EyeOff
+} from 'lucide-react';
 import { api } from '../api/axios';
 import toast from 'react-hot-toast';
 
 export const Register = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showSecretKey, setShowSecretKey] = useState(false);
   const [formData, setFormData] = useState({
-    name: '', email: '', password: '', role: 'student', branch: '', year: '',
+    name: '',
+    email: '',
+    password: '',
+    role: 'student',
+    branch: '',
+    year: '',
+    secretKey: '',
   });
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const isStaff = formData.role === 'teacher' || formData.role === 'HOD';
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    // Frontend Validations aligned with Backend Controller
     if (!formData.branch) {
       toast.error("Please select a branch");
       return;
     }
+
+    if (isStaff) {
+      if (!formData.secretKey) {
+        toast.error("Staff Secret Key is required");
+        return;
+      }
+      if (!formData.email.endsWith("@axiscolleges.in")) {
+        toast.error("Staff must use an @axiscolleges.in email");
+        return;
+      }
+    }
+
+    if (formData.role === 'student' && !formData.year) {
+      toast.error("Please select your current year");
+      return;
+    }
+
     setIsLoading(true);
+
     try {
-      await api.post('/user/register', formData);
+      // Prepare payload: Remove irrelevant fields based on role
+      const payload = { ...formData };
+      if (!isStaff) {
+        delete payload.secretKey;
+      } else {
+        delete payload.year;
+      }
+
+      await api.post('/user/register', payload);
       toast.success('Account created! Sign in to continue.');
       navigate('/login');
     } catch (err) {
@@ -36,26 +88,26 @@ export const Register = () => {
     <div className="min-h-screen relative flex items-center justify-center px-6 py-12 overflow-hidden font-sans bg-[#a0a0e5]">
       {/* Background Mesh Gradients */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
-        <motion.div 
+        <motion.div
           animate={{ scale: [1, 1.1, 1], rotate: [0, 5, 0] }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] rounded-full bg-indigo-300/40 blur-[120px]" 
+          className="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] rounded-full bg-indigo-300/40 blur-[120px]"
         />
-        <motion.div 
+        <motion.div
           animate={{ scale: [1, 1.2, 1], x: [0, 50, 0] }}
           transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-          className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-blue-400/30 blur-[120px]" 
+          className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-blue-400/30 blur-[120px]"
         />
       </div>
-      
-      <motion.div 
+
+      <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="w-full max-w-2xl relative z-10"
       >
         <div className="bg-white/80 backdrop-blur-2xl border border-white shadow-2xl rounded-[3rem] p-8 md:p-12">
           <header className="text-center mb-10">
-            <div className="inline-flex items-center justify-center bg-linear-to-br from-blue-600 to-indigo-600 p-3 rounded-2xl shadow-lg mb-4">
+            <div className="inline-flex items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-600 p-3 rounded-2xl shadow-lg mb-4">
               <GraduationCap className="text-white" size={28} />
             </div>
             <h2 className="text-3xl font-black text-slate-900 tracking-tight">Create Account</h2>
@@ -78,18 +130,34 @@ export const Register = () => {
                 <label className="text-sm font-bold text-slate-700 ml-1">Email Address</label>
                 <div className="relative group">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
-                  <input name="email" type="email" required onChange={handleChange} className="w-full pl-12 pr-4 py-3.5 bg-white/50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium" placeholder="name@college.edu" />
+                  <input name="email" type="email" required onChange={handleChange} className="w-full pl-12 pr-4 py-3.5 bg-white/50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium" placeholder={isStaff ? "name@axiscolleges.in" : "name@college.edu"} />
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Password */}
+              {/* Password */}
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 ml-1">Password</label>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
-                  <input name="password" type="password" required onChange={handleChange} className="w-full pl-12 pr-4 py-3.5 bg-white/50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium" placeholder="••••••••" />
+                  <input
+                    name="password"
+                    type={showPassword ? "text" : "password"} // Dynamic type
+                    required
+                    onChange={handleChange}
+                    className="w-full pl-12 pr-12 py-3.5 bg-white/50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium"
+                    placeholder="••••••••"
+                  />
+                  {/* Eye Toggle Button */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-500 transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
 
@@ -98,7 +166,7 @@ export const Register = () => {
                 <label className="text-sm font-bold text-slate-700 ml-1">I am a...</label>
                 <div className="relative group">
                   <School className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
-                  <select name="role" value={formData.role} onChange={handleChange} className="w-full pl-12 pr-4 py-3.5 bg-white/50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none font-medium appearance-none cursor-pointer">
+                  <select name="role" value={formData.role} onChange={handleChange} className="w-full pl-12 pr-10 py-3.5 bg-white/50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none font-medium appearance-none cursor-pointer">
                     <option value="student">Student</option>
                     <option value="teacher">Teacher</option>
                     <option value="HOD">HOD</option>
@@ -113,12 +181,12 @@ export const Register = () => {
                 <label className="text-sm font-bold text-slate-700 ml-1">Branch</label>
                 <div className="relative group">
                   <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
-                  <select 
-                    name="branch" 
-                    required 
-                    value={formData.branch} 
-                    onChange={handleChange} 
-                    className="w-full pl-12 pr-4 py-3.5 bg-white/50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none font-medium appearance-none cursor-pointer"
+                  <select
+                    name="branch"
+                    required
+                    value={formData.branch}
+                    onChange={handleChange}
+                    className="w-full pl-12 pr-10 py-3.5 bg-white/50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none font-medium appearance-none cursor-pointer"
                   >
                     <option value="" disabled>Select Branch</option>
                     <option value="BCA">BCA</option>
@@ -128,20 +196,59 @@ export const Register = () => {
                 </div>
               </div>
 
-              {/* Year Dropdown */}
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 ml-1">Current Year</label>
-                <div className="relative group">
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
-                  <select name="year" required value={formData.year} onChange={handleChange} className="w-full pl-12 pr-4 py-3.5 bg-white/50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none font-medium appearance-none cursor-pointer">
-                    <option value="" disabled>Select Year</option>
-                    <option value="1st">1st Year</option>
-                    <option value="2nd">2nd Year</option>
-                    <option value="3rd">3rd Year</option>
-                    <option value="4th">4th Year</option>
-                  </select>
-                </div>
-              </div>
+              {/* Swappable Field: Year (Student) vs Secret Key (Staff) */}
+              <AnimatePresence mode="wait">
+                {!isStaff ? (
+                  <motion.div 
+                    key="year-input"
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    className="space-y-2"
+                  >
+                    <label className="text-sm font-bold text-slate-700 ml-1">Current Year</label>
+                    <div className="relative group">
+                      <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                      <select name="year" required value={formData.year} onChange={handleChange} className="w-full pl-12 pr-10 py-3.5 bg-white/50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none font-medium appearance-none cursor-pointer">
+                        <option value="" disabled>Select Year</option>
+                        <option value="1st">1st Year</option>
+                        <option value="2nd">2nd Year</option>
+                        <option value="3rd">3rd Year</option>
+                        <option value="4th">4th Year</option>
+                      </select>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    key="secret-input"
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    className="space-y-2"
+                  >
+                    <label className="text-sm font-bold text-slate-700 ml-1">Secret Key</label>
+                    <div className="relative group">
+                      <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                      <input 
+                        name="secretKey" 
+                        type={showSecretKey ? "text" : "password"} 
+                        required 
+                        value={formData.secretKey} 
+                        onChange={handleChange} 
+                        className="w-full pl-12 pr-12 py-3.5 bg-white/50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium" 
+                        placeholder="Staff Access Key" 
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowSecretKey(!showSecretKey)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-500 transition-colors"
+                      >
+                        {showSecretKey ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <button

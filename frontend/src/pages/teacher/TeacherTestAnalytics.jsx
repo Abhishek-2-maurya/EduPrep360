@@ -30,10 +30,8 @@ export const TeacherTestAnalytics = () => {
         ]);
 
         console.log("Analytics KPIs:", analyticsPayload); 
-        console.log("Leaderboard Data:", resultsPayload); // <-- This is the JSON you pasted!
+        console.log("Leaderboard Data:", resultsPayload); 
 
-        // 1. Set the Analytics (Top Cards & Pie Chart)
-        // If there are no attempts, your backend returns { message: "No attempts yet", data: null }
         if (analyticsPayload.data === null) {
           setAnalytics({ totalAttempts: 0, passCount: 0, failCount: 0 });
         } else {
